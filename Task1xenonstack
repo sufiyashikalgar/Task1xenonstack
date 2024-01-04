@@ -1,0 +1,511 @@
+  sudo useradd -m $3
+  sudo passwd $3
+  exit 0
+fi
+
+if [[ $1 == "user" && $2 == "list" ]]; then
+  if [[ $3 == "--sudo-only" ]]; then
+    # List users with sudo permissions
+    sudo awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  else
+    # List all regular users
+    awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  fi
+  exit 0
+fi
+
+if [[ $1 == "file" && $2 == "getinfo" ]]; then
+  if [[ -z $3 ]]; then
+    echo "Error: File name not provided. Usage: internsctl file getinfo [options] <file-name>"
+    exit 1
+  fi
+
+  file_info=$(stat -c "File: %n%nAccess: %A%nSize(B): %s%nOwner: %U%nModify: %y" "$3")
+
+  if [[ -n $4 ]]; then
+    case $4 in
+      --size | -s)
+        size=$(stat -c "%s" "$3")
+        echo "Size(B): $size"
+        exit 0
+        ;;
+      --permissions | -p)
+        permissions=$(stat -c "%A" "$3")
+        echo "Access: $permissions"
+        exit 0
+        ;;
+      --owner | -o)
+        owner=$(stat -c "%U" "$3")
+        echo "Owner: $owner"
+        exit 0
+        ;;
+      --last-modified | -m)
+        last_modified=$(stat -c "%y" "$3")
+        echo "Modify: $last_modified"
+        exit 0
+        ;;
+      *)
+        echo "Invalid option. Usage: internsctl file getinfo [options] <file-name>"
+        exit 1
+        ;;
+    esac
+  else
+    echo "$file_info"
+    exit 0
+  fi
+fi
+
+# Invalid command or options
+
+echo "Invalid command or options. Use 'internsctl --help' for more information."
+exit 1
+
+[root@localhost xenonstack]# ./internsctl --help
+bash: ./internsctl: Permission denied
+[root@localhost xenonstack]# ./internsctl --version
+bash: ./internsctl: Permission denied
+[root@localhost xenonstack]# man ./internsctl --version
+man, version 1.6f
+
+[root@localhost xenonstack]# chmod +x internsctl
+[root@localhost xenonstack]# chmod 744 internsctl
+[root@localhost xenonstack]# ./internsctl --help
+./internsctl: line 1: section: command not found
+Usage: internsctl [options]
+Options:
+  --help           Display this help message
+  --version        Display the command version
+  --man            Display the manual page
+  --size           Diaplay the file size
+  --permissions    Display the file permissions
+  --owner          Display the file owner
+  --last-modified  Display the last modified
+[root@localhost xenonstack]# ./internsctl --version
+./internsctl: line 1: section: command not found
+internsctl v0.1.0
+[root@localhost xenonstack]# ./internsctl cpu getinfo
+./internsctl: line 1: section: command not found
+Architecture:          i686
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                1
+On-line CPU(s) list:   0
+Thread(s) per core:    1
+Core(s) per socket:    1
+CPU socket(s):         1
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 158
+Stepping:              13
+CPU MHz:               2400.006
+BogoMIPS:              4800.01
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              8192K
+[root@localhost xenonstack]# ./internsctl memory getinfo
+./internsctl: line 1: section: command not found
+             total       used       free     shared    buffers     cached
+Mem:       2071204     826144    1245060          0      52472     414372
+-/+ buffers/cache:     359300    1711904
+Swap:      3071992          0    3071992
+[root@localhost xenonstack]# ./internsctl user create sufiya
+./internsctl: line 1: section: command not found
+Changing password for user sufiya.
+New password: 
+BAD PASSWORD: it is too simplistic/systematic
+Retype new password: 
+Sorry, passwords do not match.
+New password: 
+BAD PASSWORD: it is WAY too short
+BAD PASSWORD: is too simple
+Retype new password: 
+[1]+  Stopped                 ./internsctl user create sufiya
+[root@localhost xenonstack]# ./internsctl user list
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user create sufiya
+./internsctl: line 1: section: command not found
+useradd: user 'sufiya' already exists
+Changing password for user sufiya.
+New password: 
+BAD PASSWORD: it is based on a dictionary word
+BAD PASSWORD: is too simple
+Retype new password: 
+[2]+  Stopped                 ./internsctl user create sufiya
+[root@localhost xenonstack]# ./internsctl user list
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user list --sudo-only
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user create newuser
+./internsctl: line 1: section: command not found
+Changing password for user newuser.
+New password: 
+[3]+  Stopped                 ./internsctl user create newuser
+[root@localhost xenonstack]# ./passwd sufiya
+bash: ./passwd: No such file or directory
+[root@localhost xenonstack]# ./internsctl sufiya
+./internsctl: line 1: section: command not found
+Invalid command or options. Use 'internsctl --help' for more information.
+[root@localhost xenonstack]# sudo passwd sufiya
+Changing password for user sufiya.
+New password: 
+[4]+  Stopped                 sudo passwd sufiya
+[root@localhost xenonstack]# passwd -d  sufiya
+Removing password for user sufiya.
+passwd: Success
+[root@localhost xenonstack]# ./internsctl user list --sudo-only
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user list --sudo
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user list
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user list --sudo-only
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl user list --wc-l
+./internsctl: line 1: section: command not found
+nfsnobody
+[root@localhost xenonstack]# ./internsctl file getinfo hello.txt
+./internsctl: line 1: section: command not found
+stat: cannot stat `hello.txt': No such file or directory
+
+[root@localhost xenonstack]# ./internsctl ls
+./internsctl: line 1: section: command not found
+Invalid command or options. Use 'internsctl --help' for more information.
+[root@localhost xenonstack]# cat internsctl
+section A
+
+if [[ $1 == "--help" ]]; then
+  echo "Usage: internsctl [options]"
+  echo "Options:"
+  echo "  --help           Display this help message"
+  echo "  --version        Display the command version"
+  echo "  --man            Display the manual page"
+  echo "  --size           Diaplay the file size"
+  echo "  --permissions    Display the file permissions"
+  echo "  --owner          Display the file owner"
+  echo "  --last-modified  Display the last modified"
+  exit 0
+fi
+
+if [[ $1 == "--version" ]]; then
+  echo "internsctl v0.1.0"
+  exit 0
+fi
+
+if [[ $1 == "--man" ]]; then
+  echo "INTERNSTL(1)                     User Commands                     INTERNSTL(1)"
+  echo ""
+  echo "NAME"
+  echo "    internsctl - Custom Linux command for operations"
+  echo ""
+  echo "SYNOPSIS"
+  echo "    internsctl [options]"
+  echo ""
+  echo "DESCRIPTION"
+  echo "    The internsctl command provides various options for performing operations."
+  echo ""
+  echo "OPTIONS"
+  echo "    --help     Display the help message and usage guidelines."
+  echo ""
+  echo "    --version  Display the command version."
+  echo ""
+  echo "    --man      Display the manual page."
+  echo ""
+  echo "EXAMPLES"
+  echo "    internsctl cpu getinfo        Get CPU information of the server."
+  echo ""
+  echo "    internsctl memory getinfo     Get memory information of the server."
+  echo ""
+  echo "    internsctl user create <username>   Create a new user on the server."
+  echo ""
+  echo "    internsctl user list          List all regular users on the server."
+  echo ""
+  echo "    internsctl user list --sudo-only    List users with sudo permissions on the server."
+  echo ""
+  echo "    internsctl file getinfo [options] <file-name>    Get information about a file."
+  echo ""
+  exit 0
+fi
+
+# Section B
+
+if [[ $1 == "cpu" && $2 == "getinfo" ]]; then
+  lscpu
+  exit 0
+fi
+
+if [[ $1 == "memory" && $2 == "getinfo" ]]; then
+  free
+  exit 0
+fi
+
+if [[ $1 == "user" && $2 == "create" ]]; then
+  if [[ -z $3 ]]; then
+    echo "Error: Username not provided. Usage: internsctl user create <username>"
+    exit 1
+  fi
+
+  # Create user
+  sudo useradd -m $3
+  sudo passwd $3
+  exit 0
+fi
+
+if [[ $1 == "user" && $2 == "list" ]]; then
+  if [[ $3 == "--sudo-only" ]]; then
+    # List users with sudo permissions
+    sudo awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  else
+    # List all regular users
+    awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  fi
+  exit 0
+fi
+
+if [[ $1 == "file" && $2 == "getinfo" ]]; then
+  if [[ -z $3 ]]; then
+    echo "Error: File name not provided. Usage: internsctl file getinfo [options] <file-name>"
+    exit 1
+  fi
+
+  file_info=$(stat -c "File: %n%nAccess: %A%nSize(B): %s%nOwner: %U%nModify: %y" "$3")
+
+  if [[ -n $4 ]]; then
+    case $4 in
+      --size | -s)
+        size=$(stat -c "%s" "$3")
+        echo "Size(B): $size"
+        exit 0
+        ;;
+      --permissions | -p)
+        permissions=$(stat -c "%A" "$3")
+        echo "Access: $permissions"
+        exit 0
+        ;;
+      --owner | -o)
+        owner=$(stat -c "%U" "$3")
+        echo "Owner: $owner"
+        exit 0
+        ;;
+      --last-modified | -m)
+        last_modified=$(stat -c "%y" "$3")
+        echo "Modify: $last_modified"
+        exit 0
+        ;;
+      *)
+        echo "Invalid option. Usage: internsctl file getinfo [options] <file-name>"
+        exit 1
+        ;;
+    esac
+  else
+    echo "$file_info"
+    exit 0
+  fi
+fi
+
+# Invalid command or options
+
+echo "Invalid command or options. Use 'internsctl --help' for more information."
+exit 1
+
+[root@localhost xenonstack]# internsctl file getinfo hello.txt
+[root@localhost xenonstack]# internsctl file getinfo hello.txt
+[root@localhost xenonstack]# ./internsctl file getinfo --size hello.txt
+./internsctl: line 1: section: command not found
+stat: unrecognized option '--size'
+Try `stat --help' for more information.
+Invalid option. Usage: internsctl file getinfo [options] <file-name>
+[root@localhost xenonstack]# ./internsctl file getinfo --permissions hello.txt
+./internsctl: line 1: section: command not found
+stat: unrecognized option '--permissions'
+Try `stat --help' for more information.
+Invalid option. Usage: internsctl file getinfo [options] <file-name>
+[root@localhost xenonstack]# internsctl > Hello.txt
+[root@localhost xenonstack]# cat Hello.txt
+[root@localhost xenonstack]# ./internsctl > Hello.txt
+./internsctl: line 1: section: command not found
+[root@localhost xenonstack]# cat Hello.txt internsctl
+Invalid command or options. Use 'internsctl --help' for more information.
+section A
+
+if [[ $1 == "--help" ]]; then
+  echo "Usage: internsctl [options]"
+  echo "Options:"
+  echo "  --help           Display this help message"
+  echo "  --version        Display the command version"
+  echo "  --man            Display the manual page"
+  echo "  --size           Diaplay the file size"
+  echo "  --permissions    Display the file permissions"
+  echo "  --owner          Display the file owner"
+  echo "  --last-modified  Display the last modified"
+  exit 0
+fi
+
+if [[ $1 == "--version" ]]; then
+  echo "internsctl v0.1.0"
+  exit 0
+fi
+
+if [[ $1 == "--man" ]]; then
+  echo "INTERNSTL(1)                     User Commands                     INTERNSTL(1)"
+  echo ""
+  echo "NAME"
+  echo "    internsctl - Custom Linux command for operations"
+  echo ""
+  echo "SYNOPSIS"
+  echo "    internsctl [options]"
+  echo ""
+  echo "DESCRIPTION"
+  echo "    The internsctl command provides various options for performing operations."
+  echo ""
+  echo "OPTIONS"
+  echo "    --help     Display the help message and usage guidelines."
+  echo ""
+  echo "    --version  Display the command version."
+  echo ""
+  echo "    --man      Display the manual page."
+  echo ""
+  echo "EXAMPLES"
+  echo "    internsctl cpu getinfo        Get CPU information of the server."
+  echo ""
+  echo "    internsctl memory getinfo     Get memory information of the server."
+  echo ""
+  echo "    internsctl user create <username>   Create a new user on the server."
+  echo ""
+  echo "    internsctl user list          List all regular users on the server."
+  echo ""
+  echo "    internsctl user list --sudo-only    List users with sudo permissions on the server."
+  echo ""
+  echo "    internsctl file getinfo [options] <file-name>    Get information about a file."
+  echo ""
+  exit 0
+fi
+
+# Section B
+
+if [[ $1 == "cpu" && $2 == "getinfo" ]]; then
+  lscpu
+  exit 0
+fi
+
+if [[ $1 == "memory" && $2 == "getinfo" ]]; then
+  free
+  exit 0
+fi
+
+if [[ $1 == "user" && $2 == "create" ]]; then
+  if [[ -z $3 ]]; then
+    echo "Error: Username not provided. Usage: internsctl user create <username>"
+    exit 1
+  fi
+
+  # Create user
+  sudo useradd -m $3
+  sudo passwd $3
+  exit 0
+fi
+
+if [[ $1 == "user" && $2 == "list" ]]; then
+  if [[ $3 == "--sudo-only" ]]; then
+    # List users with sudo permissions
+    sudo awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  else
+    # List all regular users
+    awk -F: '$3 >= 1000 && $7 != "/usr/sbin/nologin" { print $1 }' /etc/passwd
+  fi
+  exit 0
+fi
+
+if [[ $1 == "file" && $2 == "getinfo" ]]; then
+  if [[ -z $3 ]]; then
+    echo "Error: File name not provided. Usage: internsctl file getinfo [options] <file-name>"
+    exit 1
+  fi
+
+  file_info=$(stat -c "File: %n%nAccess: %A%nSize(B): %s%nOwner: %U%nModify: %y" "$3")
+
+  if [[ -n $4 ]]; then
+    case $4 in
+      --size | -s)
+        size=$(stat -c "%s" "$3")
+        echo "Size(B): $size"
+        exit 0
+        ;;
+      --permissions | -p)
+        permissions=$(stat -c "%A" "$3")
+        echo "Access: $permissions"
+        exit 0
+        ;;
+      --owner | -o)
+        owner=$(stat -c "%U" "$3")
+        echo "Owner: $owner"
+        exit 0
+        ;;
+      --last-modified | -m)
+        last_modified=$(stat -c "%y" "$3")
+        echo "Modify: $last_modified"
+        exit 0
+        ;;
+      *)
+        echo "Invalid option. Usage: internsctl file getinfo [options] <file-name>"
+        exit 1
+        ;;
+    esac
+  else
+    echo "$file_info"
+    exit 0
+  fi
+fi
+
+# Invalid command or options
+
+echo "Invalid command or options. Use 'internsctl --help' for more information."
+exit 1
+
+[root@localhost xenonstack]# ./internsctl file getinfo hello.txt
+./internsctl: line 1: section: command not found
+stat: cannot stat `hello.txt': No such file or directory
+
+[root@localhost xenonstack]# ./internsctl touch Hello.txt
+./internsctl: line 1: section: command not found
+Invalid command or options. Use 'internsctl --help' for more information.
+[root@localhost xenonstack]# cat Hello.txt
+Invalid command or options. Use 'internsctl --help' for more information.
+[root@localhost xenonstack]# touch Hello.txt
+[root@localhost xenonstack]# vi Hello
+[root@localhost xenonstack]# cat hello.txt
+cat: hello.txt: No such file or directory
+[root@localhost xenonstack]# cat hello
+cat: hello: No such file or directory
+[root@localhost xenonstack]# cat Hello.txt
+Invalid command or options. Use 'internsctl --help' for more information.
+[root@localhost xenonstack]# cat Hello
+sufiya shikalgar
+[root@localhost xenonstack]# cat internsctl >> Hello
+[root@localhost xenonstack]# ./internsctl file getinfo Hello
+./internsctl: line 1: section: command not found
+File: HelloHelloAccess: -rw-r--r--HelloSize(B): 3598HelloOwner: rootHelloModify: 2024-01-04 16:01:59.169956141 +0530
+[root@localhost xenonstack]# ./internsctl file getinfo --size Hello.txt
+./internsctl: line 1: section: command not found
+stat: unrecognized option '--size'
+Try `stat --help' for more information.
+Invalid option. Usage: internsctl file getinfo [options] <file-name>
+[root@localhost xenonstack]# ./internsctl file getinfo --size Hello
+./internsctl: line 1: section: command not found
+stat: unrecognized option '--size'
+Try `stat --help' for more information.
+Invalid option. Usage: internsctl file getinfo [options] <file-name>
+[root@localhost xenonstack]# ./internsctl file getinfo Hello
+./internsctl: line 1: section: command not found
+File: HelloHelloAccess: -rw-r--r--HelloSize(B): 3598HelloOwner: rootHelloModify: 2024-01-04 16:01:59.169956141 +0530
+[root@localhost xenonstack]# ./internsctl file getinfo Hello
+./internsctl: line 1: section: command not found
+File: HelloHelloAccess: -rw-r--r--HelloSize(B): 3598HelloOwner: rootHelloModify: 2024-01-04 16:01:59.169956141 +0530
+[root@localhost xenonstack]# S
